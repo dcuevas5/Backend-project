@@ -1,43 +1,44 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-
-require('./db');                 // starts MongoDB connection
-const Song = require('./models/songs');
+const express = require("express");
+const Song = require("./models/songs");
+var cors = require('cors')
 
 const app = express();
+app.use(cors())
 
-app.use(cors());
-app.use(bodyParser.json());
+// Middleware that parses HTTP requests with JSON body
+app.use(express.json());
 
 const router = express.Router();
 
-router.get("/songs", async (req, res) => {
-  try {
-    console.log("➡️ GET /api/songs");
-    const songs = await Song.find();
-    console.log("Songs from DB:", songs);
-    res.json(songs);
-  } catch (err) {
-    console.error("Error in GET /api/songs:", err);
-    res.status(500).send("Error fetching songs");
-  }
-});
+// Get list of all songs in the database
+router.get("/songs", async(req,res) =>{
+   try{
+      const songs = await Song.find({})
+      res.send(songs)
+      console.log(songs)
+   }
+   catch (err){
+      console.log(err)
+   }
+
+})
+
+router.post("/songs", async(req,res) =>{
+   try{
+      const song = await new Song(req.body)
+      await song.save()
+      res.status(201).json(song)
+      console.log(song)
+   }
+   catch(err){
+      res.status(400).send(err)
+
+   }
+      
+   
+})
+
 
 app.use("/api", router);
 
-app.listen(3000, () => {
-  console.log("Server running at http://localhost:3000");
-});
-
-router.post("/songs", async (req, res) => {
-    try{
-        const song = new Song(req.body);
-        await song.save();
-        res. status(201).json(song);
-        console.log(song)
-    }
-    catch(err){
-        res.status(400).send(err)
-    }
-    });
+app.listen(3000);
